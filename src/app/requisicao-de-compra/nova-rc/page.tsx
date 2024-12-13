@@ -1,5 +1,5 @@
 "use client";
-import { ChevronUp, CirclePlus, FilePlus } from "lucide-react";
+import { ChevronUp, CirclePlus, FilePlus,Save } from "lucide-react";
 import { supabase } from "@/db/supabaseClient";
 import { useContext, useEffect, useState } from "react";
 import { fetchRC, fetchRCLineByRCNum } from "@/functions/functions";
@@ -18,18 +18,57 @@ interface RCLine {
   rcnum: number;
 }
 
+
+
+
 export default function NewRC() {
   const [expandLine, setExpandLine] = useState(false);
   const [rcsLine, setRCSLine] = useState<RCLine[]>();
+  const [inputs,setInputs] = useState({
+    rcnum: "",
+    fornecedor:"",
+    cnpj: "",
+    data_requisicao:"",
+    status:"INSERIDO",
+    solicitante:""
+  })
 
-  const { resultRC } = useContext(AppContext);
-  const rcData = resultRC.map((rc) => {
+  
+
+  const { resultRC,isNewRegister, setIsNewRegister } = useContext(AppContext);
+
+  const [newRegister, setNewRegister] = useState([{
+    rcnum: "",
+    vendor: "",
+    cnpj: "",
+    data_req: "",
+    status: "",
+    requestor: "",
+    descricao: ""
+  }])
+
+  const handleChangeInputs= (e:any)=> {
+    const {name,value} = e.target;
+
+    setInputs((prevState) => ({...prevState,[name]: value}))
+
+  }
+
+  const createRC = async (e) => {
+    e.preventDefault()
+    const {data,error } = await supabase.from('rc').insert([inputs])
+    if (error) { console.error('Erro ao salvar informações:', error); } else { console.log('Informações salvas com sucesso:', data); }
+  }
+
+
+  const rcData = resultRC.map((rc: any) => {
     return rc.rcnum;
   });
 
+
   useEffect(() => {
     const fetchRCLine = async () => {
-      const res = await fetchRCLineByRCNum(rcData);
+      const res: any = await fetchRCLineByRCNum(rcData);
       setRCSLine(res);
     };
     fetchRCLine();
@@ -43,10 +82,42 @@ export default function NewRC() {
             Nova RC
             <CirclePlus />
           </button>
+          <button className="flex gap-2 bg-greenLight p-2 text-white font-medium hover:bg-green transition-all duration-200" onClick={createRC}>Salvar <Save/></button>
           <h3>Alterar status</h3>
+          
         </div>
-        <div>
-          {resultRC.map((res, index) => (
+        {isNewRegister ? <div className="flex flex-col gap-4">
+          <div className="flex gap-2">
+                <h3 className="font-medium">RC:</h3>
+                <input value={inputs.rcnum} name="rcnum" onChange={handleChangeInputs} className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark" ></input>
+              </div>
+              <div className="flex gap-2">
+                <h3 className="font-medium">Descrição:</h3>
+                <input value={inputs.descricao} name="descricao"  onChange={handleChangeInputs}className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+              </div>
+              <div className="flex gap-2">
+                <h3 className="font-medium">Fornecedor:</h3>
+                <input value={inputs.fornecedor} name="fornecedor"  onChange={handleChangeInputs}className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+              </div>
+              <div className="flex gap-2">
+                <h3 className="font-medium">CNPJ:</h3>
+                <input value={inputs.cnpj} name="cnpj"  onChange={handleChangeInputs}className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+              </div>
+              <div className="flex gap-2">
+                <h3 className="font-medium">Data da requisição:</h3>
+                <input value={inputs.data_requisicao} name="data_requisicao"  onChange={handleChangeInputs} className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+              </div>
+              <div className="flex gap-2">
+                <h3 className="font-medium">Status:</h3>
+                <input value={inputs.status}  readOnly className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+              </div>
+              <div className="flex gap-2">
+                <h3 className="font-medium">Solicitante:</h3>
+                <input value={inputs.solicitante} name="solicitante"  onChange={handleChangeInputs} className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+              </div>
+        </div>:
+         <div>
+          {resultRC.map((res: any, index: number) => (
             <div className="flex flex-col gap-4" key={index}>
               <div className="flex gap-2">
                 <h3 className="font-medium">RC:</h3>
@@ -75,12 +146,122 @@ export default function NewRC() {
               </div>
             </div>
           ))}
-        </div>
+        </div>}
+        
         <button className="flex gap-2 bg-[rgba(0,0,0,0.32)] p-2 text-white font-medium ">
           Criar OC
           <CirclePlus />
         </button>
-        <div className="w-full flex flex-col gap-4">
+
+        {isNewRegister ? <div className="w-full flex flex-col gap-4"><h4 className="font-bold">Pedidos</h4>
+          <table className="min-w-full border-collapse  ">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="text-left border p-2">Linha</th>
+                <th className="text-left border p-2">Item</th>
+                <th className="text-left border p-2">Centro de Custo</th>
+                <th className="text-left border p-2">Total</th>
+                <th className="text-left border p-2">Custo unitário</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="text-left border p-2">
+                  <input  className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                </td>
+                <td className="text-left border p-2">
+                  <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                  </td>
+                  <td className="text-left border p-2">
+                  <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                  </td>
+                  <td className="text-left border p-2">
+                  <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                  </td>
+                  <td className="text-left border p-2 flex justify-between">
+                  <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                    <ChevronUp
+                      className={`cursor-pointer transition-all duration-200 ${
+                        expandLine ? "rotate-180" : ""
+                      }`}
+                      onClick={() => {
+                        setExpandLine(!expandLine);
+                      }}
+                    />
+                  </td>
+              </tr>
+              
+              </tbody>
+            </table>
+            <div>
+            <div
+              className={`transition-transform duration-500 transform origin-top ${
+                expandLine ? "scale-y-100" : "scale-y-0"
+              } flex p-4 flex-col gap-6 bg-gray-200 rounded`}
+            >
+              <h3 className="font-bold">Detalhes</h3>
+              {rcsLine?.map((rcLine, index) => (
+                <div key={index} className="flex gap-[40rem]">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Linha:</h4>
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                    </div>
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Item:</h4>
+                      <h4 className="font-normal">
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                      </h4>
+                    </div>
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Descrição:</h4>
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                    </div>
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Unidade de Medida:</h4>
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                    </div>
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Custo Unitário:</h4>
+                      <h4 className="font-normal">
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                      </h4>
+                    </div>
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Total:</h4>
+                      <h4 className="font-normal">
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                      </h4>
+                    </div>
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Quantidade:</h4>
+                      <h4 className="font-normal">
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                      </h4>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-4 ">
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">
+                        Prazo de entrega previsto:
+                      </h4>
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                    </div>
+                    <div className="flex gap-2">
+                      <h4 className="font-medium">Centro de custo:</h4>
+                      <input className="w-full px-2 py-1 text-right focus:outline-none focus:border-greenDark"></input>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <button className="flex gap-2 bg-greenLight p-2 text-white font-medium hover:bg-green transition-all duration-200 ">
+              Nova linha <FilePlus />
+            </button>
+          </div>
+          </div> : <div className="w-full flex flex-col gap-4">
           <h4 className="font-bold">Pedidos</h4>
           <table className="min-w-full border-collapse  ">
             <thead>
@@ -207,7 +388,8 @@ export default function NewRC() {
               Nova linha <FilePlus />
             </button>
           </div>
-        </div>
+        </div>}
+        
       </div>
     </div>
   );

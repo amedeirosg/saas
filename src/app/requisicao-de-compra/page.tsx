@@ -4,7 +4,6 @@ import { CirclePlus } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { fetchRC, fetchRCByNumber } from "@/functions/functions";
 import { AppContext } from "@/context/context";
-
 interface RC {
   rcnum: number;
   descricao: string;
@@ -18,10 +17,16 @@ interface RC {
 export default function RC() {
   const router = useRouter();
   const [rcs, setRcs] = useState<RC[]>();
-  const { resultRC, setResultRC } = useContext(AppContext);
+  const { resultRC, setResultRC, setIsNewRegister } = useContext(AppContext);
   useEffect(() => {
     fetchRC(setRcs);
+    setIsNewRegister(false)
   }, []);
+
+  const handleNewRegister = () => {
+    setIsNewRegister(true)
+    router.push('/requisicao-de-compra/nova-rc')
+  }
 
   return (
     <div className="mt-8 w-full mr-8 ">
@@ -30,7 +35,7 @@ export default function RC() {
           <h2 className="font-medium">Requisições de compra</h2>
         </div>
         <button
-          onClick={() => router.push("/requisicao-de-compra/nova-rc")}
+          onClick={handleNewRegister}
           className="flex gap-2 bg-greenLight p-2 text-white font-medium hover:bg-green transition-all duration-200"
         >
           Nova RC

@@ -14,6 +14,8 @@ type RC = {
 type AppContextType = {
   resultRC: RC[];
   setResultRC: React.Dispatch<React.SetStateAction<RC[]>>;
+  isNewRegister: boolean;
+  setIsNewRegister: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type AppProviderProps = {
@@ -24,9 +26,9 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [resultRC, setResultRC] = useState<RC[]>([]);
-
+  const [isNewRegister, setIsNewRegister] = useState(false)
   return (
-    <AppContext.Provider value={{ resultRC, setResultRC }}>
+    <AppContext.Provider value={{ resultRC, setResultRC, isNewRegister,setIsNewRegister }}>
       {children}
     </AppContext.Provider>
   );
